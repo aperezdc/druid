@@ -71,6 +71,9 @@ var ExpandNaturalLanguageIds = Trigger.$extend({
 			} else {
 				bugid = match[0];
 			}
+			if (!self.bugzillas[bugzilla]) {
+				bugzilla = self.defaultbz;
+			}
 			if (self.bugzillas[bugzilla]) {
 				var baseurl = self.bugzillas[bugzilla];
 				req.reply(baseurl + "/show_bug.cgi?id=" + bugid);
