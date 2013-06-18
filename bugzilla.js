@@ -42,6 +42,9 @@ var BugSummary = Trigger.$extend({
 				try {
 					var $ = cheerio.load(body);
 					var summary = $("span#short_desc_nonedit_display").text();
+					if (!summary) {
+						summary = "Not found / Invalid bug ID";
+					}
 					req.reply("#" + match[1] + " - " + summary);
 				} catch (e) {
 					console.log("[error:bugzilla] " + e);
