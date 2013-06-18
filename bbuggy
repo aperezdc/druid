@@ -1,0 +1,17 @@
+#! /usr/bin/env node
+/*
+ * bbuggy - a NodeJS Jabber bugbot.
+ * Copyright (C) 2013 Adrian Perez <aperez@igalia.com>
+ *
+ * Distributed under terms of the MIT license.
+ */
+
+const config = require("./config.json");
+const druid = require("./druid.js");
+const bugzilla = require("./bugzilla");
+
+bot = new druid.Bot(config);
+bugzilla.configure(bot, config.bugzilla);
+bot.run();
+
+// vim: ft=javascript

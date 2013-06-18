@@ -1,0 +1,19 @@
+{
+	// User JID under which the bot operates, and password.
+	"jid": "bot@jabber.org",
+	"password": "bot-password",
+
+	// MUC rooms to connect to. Room names are the keys, and the
+	// value is the nickname the bot will have in the room.
+	"rooms": {
+		"room1@conf.jabber.org": "bbuggy",
+		"room2@conf.jabber.org": "bugmaster"
+	},
+
+	// Maps short prefixes to base URLs of Bugzilla instances.
+	"bugzilla": {
+		"fdo": "https://bugs.freedesktop.org",
+		"gb" : "https://bugzilla.gnome.org",
+		"wk" : "https://bugs.webkit.org"
+	}
+}
