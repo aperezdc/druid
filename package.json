@@ -1,0 +1,34 @@
+{
+  "name": "druid",
+  "version": "0.0.1",
+  "description": "NodeJS Jabber bot framework",
+  "dependencies": {
+    "node-stringprep": "~0.1.7",
+    "cheerio": "~0.12.0",
+    "node-xmpp": "~0.4.5",
+    "request": "~2.21.0"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/aperezdc/druid.git"
+  },
+  "keywords": [
+    "xmpp",
+    "muc",
+    "bot",
+    "jabber",
+    "library",
+    "framework"
+  ],
+  "author": "Adrian Perez de Castro",
+  "license": "MIT",
+  "readmeFilename": "README.md",
+  "gitHead": "42b199257e8c261a7e5be03e4610f566042a904d",
+  "bugs": {
+    "url": "https://github.com/aperezdc/druid/issues"
+  }
+}
