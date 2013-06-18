@@ -16,7 +16,7 @@ license](http://opensource.org/licenses/mit).
 `npm` can be used to install the dependencies, use the following command:
 
 ```sh
-npm install cheerio request node-xmpp
+npm install cheerio request node-xmpp node-stringprep
 ```
 
 
