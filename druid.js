@@ -79,11 +79,11 @@ var Request = Class.$extend({
 
 
 var Trigger = Class.$extend({
-	__init__: function (regexp, callback) {
+	__init__: function (regexp, callback, snoop) {
 		if (typeof(callback) !== "function") {
 			throw new Error("Callback argument is not a function");
 		}
-		this.snoop = false;
+		this.snoop = snoop ? true : false;
 		this._regexp = regexp;
 		this._callback = callback;
 	},

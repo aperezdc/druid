@@ -16,8 +16,8 @@ var ExpandBugId = Trigger.$extend({
 		self.baseurl = baseurl;
 		self.$super(new RegExp("\\b" + prefix + "[:#](\\w+)\\b", "i"), function (req, match) {
 			req.reply(self.baseurl + "/show_bug.cgi?id=" + match[0]);
-		});
-		self.snoop = true;
+			return true;
+		}, true);
 	},
 });
 exports.ExpandBugId = ExpandBugId;
@@ -48,8 +48,7 @@ var BugSummary = Trigger.$extend({
 				}
 			});
 			return true;
-		});
-		self.snoop = true;
+		}, true);
 	},
 });
 exports.BugSummary = BugSummary;
