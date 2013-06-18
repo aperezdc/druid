@@ -9,9 +9,17 @@
 const config = require("./config.json");
 const druid = require("./druid.js");
 const bugzilla = require("./bugzilla");
+var bzMapping = {
+  "gnome": config.bugzilla.gb,
+  "webkit": config.bugzilla.wk,
+  "wk": config.bugzilla.wk,
+  "fdo": config.bugzilla.fdo,
+  "poppler": config.bugzilla.fdo,
+  "freedesktop": config.bugzilla.fdo,
+};
 
 bot = new druid.Bot(config);
-bugzilla.configure(bot, config.bugzilla);
+bugzilla.configure(bot, config.bugzilla, bzMapping, "gnome");
 bot.run();
 
 // vim: ft=javascript

@@ -54,10 +54,38 @@ var BugSummary = Trigger.$extend({
 exports.BugSummary = BugSummary;
 
 
-exports.configure = function (bot, config) {
+var ExpandNaturalLanguageIds = Trigger.$extend({
+	__init__: function (bugzillas, defaultbz) {
+		var self = this;
+		self.bugzillas = bugzillas;
+		self.defaultbz = defaultbz;
+		self.$super(/\b(?:(\w+)\s+)?bug\s+#?(\w+)\b/i, function (req, match) {
+			var bugzilla = self.defaultbz;
+			var bugid = null;
+			if (match.length == 2) {
+				bugzilla = match[0];
+				bugid = match[1];
+			} else {
+				bugid = match[0];
+			}
+			if (self.bugzillas[bugzilla]) {
+				var baseurl = self.bugzillas[bugzilla];
+				req.reply(baseurl + "/show_bug.cgi?id=" + bugid);
+			}
+			return true;
+		}, true);
+	},
+});
+exports.ExpandNaturalLanguageIds = ExpandNaturalLanguageIds;
+
+
+exports.configure = function (bot, config, mapping, deflt) {
 	for (var prefix in config) {
 		var url = config[prefix];
 		bot.addTrigger(new ExpandBugId(prefix, url));
 		bot.addTrigger(new BugSummary(prefix, url));
+	}
+	if (mapping && deflt) {
+		bot.addTrigger(new ExpandNaturalLanguageIds(mapping, deflt));
 	}
 };
