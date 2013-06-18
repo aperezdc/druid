@@ -224,7 +224,7 @@ var Bot = Class.$extend({
 		// for those cases in which TCP keepalives are not enough (e.g.
 		// routers which keep track of data bytes passed on the wire).
 		var self = this;
-		setInterval(function () { self._conn.send(" "); }, 30000);
+		setInterval(function () { self._conn.connection.send(" "); }, 30000);
 	},
 	_onStanza: function (stanza) {
 		try {
