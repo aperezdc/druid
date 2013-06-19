@@ -6,7 +6,8 @@
     "node-stringprep": "~0.1.7",
     "cheerio": "~0.12.0",
     "node-xmpp": "~0.4.5",
-    "request": "~2.21.0"
+    "request": "~2.21.0",
+    "lru-cache": "~2.3.0"
   },
   "devDependencies": {},
   "scripts": {

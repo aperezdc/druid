@@ -5,6 +5,7 @@
  * Distributed under terms of the MIT license.
  */
 
+var cache = require("lru-cache");
 var request = require("request");
 var cheerio = require("cheerio");
 var Trigger = require("./druid").Trigger;
@@ -26,6 +27,11 @@ exports.ExpandBugId = ExpandBugId;
 var BugSummary = Trigger.$extend({
 	__init__: function (prefix, baseurl) {
 		var self = this;
+		self._cache = cache({
+			max: 500,              // Store 500 elements
+			maxAge: 1000 * 60 * 3, // ...for a maximum of three minutes
+			length: function (n) { return 1; },
+		});
 		self.prefix = prefix;
 		self.baseurl = baseurl;
 		self.$super(/\b(https?:\/\/[\w\.\/:-]+)\/show_bug\.cgi\?id=(\d+)\b/, function (req, match) {
@@ -34,6 +40,11 @@ var BugSummary = Trigger.$extend({
 			}
 
 			var url = self.baseurl + "/show_bug.cgi?id=" + match[1];
+			if (self._cache.has(url)) {
+				req.reply("#" + match[1] + " - " + self._cache.get(url));
+				return true;
+			}
+
 			request(url, function (error, response, body) {
 				if (error) {
 					console.log("[error:bugzilla] " + error);
@@ -45,6 +56,7 @@ var BugSummary = Trigger.$extend({
 					if (!summary) {
 						summary = "Not found / Invalid bug ID";
 					}
+					self._cache.set(url, summary);
 					req.reply("#" + match[1] + " - " + summary);
 				} catch (e) {
 					console.log("[error:bugzilla] " + e);
