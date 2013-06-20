@@ -8,6 +8,22 @@
 require("./classy");
 const xmpp = require("node-xmpp");
 
+const NS_CHATSTATES   = "http://jabber.org/protocol/chatstates";
+const NS_MUC          = "http://jabber.org/protocol/muc";
+const NS_PING         = "urn:xmpp:ping";
+
+const PRESENCE_ONLINE = "online";
+const PRESENCE_CHAT   = "chat";
+const PRESENCE_AWAY   = "away";
+const PRESENCE_DND    = "dnd";
+const PRESENCE_XA     = "xa";
+
+const STATE_COMPOSING = "composing";
+const STATE_ACTIVE    = "active";
+const STATE_INACTIVE  = "inactive";
+const STATE_PAUSED    = "paused";
+const STATE_GONE      = "gone";
+
 
 var Error = Class.$extend({
 	__init__: function (text) {
@@ -39,8 +55,10 @@ var Request = Class.$extend({
 			throw new XmppError(stanza);
 		}
 
+		this._ended = false;
 		this.bot = bot;
 		this.stanza = stanza;
+		this.replyto = null;
 		this.message = null;
 		this.room = null;
 		this.from = null;
@@ -48,25 +66,49 @@ var Request = Class.$extend({
 
 		if (stanza.is("message")) {
 			this.message = stanza.getChildText("body");
-			this.from = stanza.attrs.from;
+			this.from = this.replyto = stanza.attrs.from;
 			this.to = stanza.attrs.to;
 			if (stanza.attrs.type == "groupchat") {
 				this.message = stanza.getChildText("body");
 				var temp = stanza.attrs.from.split("/");
-				this.room = temp[0];
+				this.room = this.replyto = temp[0];
 				this.from = temp[1];
 			}
 		}
 	},
 
 	reply: function (text) {
-		var message = null;
-		if (this.room) {
-			message = this.bot.mucMessage(this.room, text);
-		} else {
-			message = this.bot.message(this.from, text);
+		if (!this._ended) {
+			this.bot.send(new xmpp.Element("message", { to: this.replyto,
+				type: (this.room ? "groupchat" : "chat") }).c("body").t(text));
 		}
-		this.bot.send(message);
+		return this;
+	},
+
+	start: function () {
+		if (!this._ended) {
+			this.setState(STATE_ACTIVE);
+		}
+		return this;
+	},
+	
+	end: function (text) {
+		if (!this._ended) {
+			this.setState(STATE_INACTIVE);
+			this._ended = true;
+		}
+		return this;
+	},
+
+	replyLater: function () {
+		return this.setState(STATE_COMPOSING);
+	},
+
+	setState: function (state) {
+		if (!this._ended) {
+			this.bot.setState(this.replyto, state, this.room !== null);
+		}
+		return this;
 	},
 
 	isMessage: function () {
@@ -113,7 +155,7 @@ var Trigger = Class.$extend({
 
 	run: function (request) {
 		var matches = this.matches(request.message);
-		return (matches !== null) ? this._callback(request, matches) : false;
+		return (matches !== null) ? this._callback(request.start(), matches) : false;
 	},
 });
 exports.Trigger = Trigger;
@@ -167,28 +209,36 @@ var Bot = Class.$extend({
 		self._conn.on("stanza", function (s) { return self._onStanza(s); });
 	},
 
-	setStatus: function (message) {
-		var elem = new xmpp.Element("presence", {})
-			.c("show").t("chat").up()
-			.c("status").t(message);
-		this._conn.send(elem);
+	setPresence: function (show, state) {
+		var elem = new xmpp.Element("presence", {});
+		if (show && show !== "online") {
+			elem.c("show").t(show);
+		}
+		if (typeof(state) !== "undefined") {
+			elem.c("status").t(state);
+		}
+		this.send(elem);
+	},
+
+	setState: function (to, state, muc) {
+		if (muc && state === STATE_GONE) {
+			throw new Error("Cannot send 'gone' states to MUC group chats");
+		}
+		var elem = new xmpp.Element("message", { to: to,
+			type: (muc ? "groupchat" : "chat")}).c(state, { xmlns: NS_CHATSTATES }).up();
+		this.send(elem);
 	},
 
 	ping: function () {
 		var elem = new xmpp.Element("iq", { from: conn.jid, type: "get", id: "c2s1" })
-			.c("ping", { xmlns: "urn:xmpp:ping" });
-		this._conn.send(elem);
+			.c("ping", { xmlns: NS_PING });
+		this.send(elem);
 	},
 
 	join: function (roomJid) {
 		var elem = new xmpp.Element("presence", { to: roomJid })
-			.c("x", { xmlns: "http://jabber.org/protocol/muc" });
-		this._conn.send(elem);
-	},
-
-	message: function (jid, text) {
-		return new xmpp.Element("message", { to: jid, type: "chat" })
-			.c("body").t(text);
+			.c("x", { xmlns: NS_MUC }).up();
+		this.send(elem);
 	},
 
 	mucMessage: function (jid, text) {
@@ -214,19 +264,49 @@ var Bot = Class.$extend({
 	},
 
 	_onOnline: function () {
-		this.setStatus("Available");
+		console.info("druid: Connected");
+		this.setPresence(PRESENCE_ONLINE);
 		for (var room in this._rooms) {
 			var roomJid = room + "/" + this._rooms[room];
+			console.info("druid: Joining", roomJid);
 			this.join(roomJid);
+
+			// XXX Sending the first state to the chatroom before the server
+			//     ACKs the presence makes the server notify an error.
+			//this.setState(roomJid, STATE_INACTIVE, true);
 		}
 
 		// Sending spaces over the wire works as a keepalive mechanism,
 		// for those cases in which TCP keepalives are not enough (e.g.
 		// routers which keep track of data bytes passed on the wire).
 		var self = this;
-		setInterval(function () { self._conn.connection.send(" "); }, 30000);
+		setInterval(function () {
+			console.trace("druid: Sending application-level keepalive");
+			self._conn.connection.send(" ");
+		}, 30000);
 	},
+
+	_onClose: function () {
+		console.info("druid: Connection closed");
+	},
+
 	_onStanza: function (stanza) {
+		if (stanza.is("message")) {
+			this._onMessageStanza(stanza);
+			return;
+		}
+		if (stanza.is("presence")) {
+			console.warn("druid: Ignoring presence stanza");
+			return;
+		}
+		if (stanza.is("iq")) {
+			console.warn("druid: Ignoring iq stanza");
+			return;
+		}
+		console.warn("druid: Unhandled", stanza.name, "stanza");
+	},
+
+	_onMessageStanza: function (stanza) {
 		try {
 			var request = new Request(this, stanza);
 			if (request.isMucMessage() && this._rooms[request.room]) {
@@ -253,6 +333,7 @@ var Bot = Class.$extend({
 			this._onError(e);
 		}
 	},
+
 	_onError: function (error) {
 		throw error;
 	},
