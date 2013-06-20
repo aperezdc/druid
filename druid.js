@@ -83,7 +83,7 @@ var Trigger = Class.$extend({
 		if (typeof(callback) !== "function") {
 			throw new Error("Callback argument is not a function");
 		}
-		this.snoop = snoop ? true : false;
+		this.snoop = (typeof(snoop) === "undefined") ? true : snoop;
 		this._regexp = regexp;
 		this._callback = callback;
 	},
@@ -132,7 +132,7 @@ var Command = Trigger.$extend({
 			}
 			self._cmd_callback(request, matches[0], matches[1]);
 			return true;
-		});
+		}, false);
 	},
 });
 

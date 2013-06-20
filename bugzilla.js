@@ -18,7 +18,7 @@ var ExpandBugId = Trigger.$extend({
 		self.$super(new RegExp("\\b" + prefix + "[:# ](\\d+)\\b", "i"), function (req, match) {
 			req.reply(self.baseurl + "/show_bug.cgi?id=" + match[0]);
 			return true;
-		}, true);
+		});
 	},
 });
 exports.ExpandBugId = ExpandBugId;
@@ -63,7 +63,7 @@ var BugSummary = Trigger.$extend({
 				}
 			});
 			return true;
-		}, true);
+		});
 	},
 });
 exports.BugSummary = BugSummary;
@@ -91,7 +91,7 @@ var ExpandNaturalLanguageIds = Trigger.$extend({
 				req.reply(baseurl + "/show_bug.cgi?id=" + bugid);
 			}
 			return true;
-		}, true);
+		});
 	},
 });
 exports.ExpandNaturalLanguageIds = ExpandNaturalLanguageIds;
