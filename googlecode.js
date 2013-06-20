@@ -59,7 +59,7 @@ var BugSummary = Trigger.$extend({
 						summary = "Not found / Invalid bug ID";
 					}
 					self._cache.set(url, summary);
-					req.reply("#" + match[1] + " - " + summary).end();
+					req.reply(project + ":" + match[1] + " - " + summary).end();
 				} catch (e) {
 					console.log("googlecode: error: " + e);
 				}
@@ -71,7 +71,7 @@ var BugSummary = Trigger.$extend({
 exports.BugSummary = BugSummary;
 
 
-exports.configure = function (bot, config, mapping, deflt) {
+exports.configure = function (bot, config) {
 	for (var project in config) {
 		var prefix = config[project];
 		if (prefix === true) {
