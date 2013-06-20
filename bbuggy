@@ -8,8 +8,9 @@
 
 const config = require("./config.json");
 const druid = require("./druid.js");
-const bugzilla = require("./bugzilla");
-var bzMapping = {
+
+// TODO Remove this from here and read this from config.json
+const bzMapping = {
   "gnome": config.bugzilla.gb,
   "webkit": config.bugzilla.wk,
   "wk": config.bugzilla.wk,
@@ -18,8 +19,14 @@ var bzMapping = {
   "freedesktop": config.bugzilla.fdo,
 };
 
+
 bot = new druid.Bot(config);
-bugzilla.configure(bot, config.bugzilla, bzMapping, "gnome");
+
+if (config.bugzilla)
+  require("./bugzilla").configure(bot, config.bugzilla, bzMapping, "gnome");
+if (config.googlecode)
+  require("./googlecode").configure(bot, config.googlecode);
+
 bot.run();
 
 // vim: ft=javascript

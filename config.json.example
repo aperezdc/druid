@@ -15,5 +15,11 @@
 		"fdo": "https://bugs.freedesktop.org",
 		"gb" : "https://bugzilla.gnome.org",
 		"wk" : "https://bugs.webkit.org"
+	},
+
+	// Maps Google Code projects to prefixes (or just "true" for no prefix)
+	"googlecode": {
+		"v8": true,
+		"chromium": "cr"
 	}
 }
