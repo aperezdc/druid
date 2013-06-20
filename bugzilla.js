@@ -48,19 +48,18 @@ var BugSummary = Trigger.$extend({
 			req.replyLater();
 			request(url, function (error, response, body) {
 				if (error) {
-					console.log("[error:bugzilla] " + error);
+					console.log("bugzilla: error: " + error);
 					return;
 				}
 				try {
-					var $ = cheerio.load(body);
-					var summary = $("span#short_desc_nonedit_display").text();
+					var summary = cheerio(body).find("span#short_desc_nonedit_display").text();
 					if (!summary) {
 						summary = "Not found / Invalid bug ID";
 					}
 					self._cache.set(url, summary);
 					req.reply("#" + match[1] + " - " + summary).end();
 				} catch (e) {
-					console.log("[error:bugzilla] " + e);
+					console.log("bugzilla: error: " + e);
 				}
 			});
 			return true;

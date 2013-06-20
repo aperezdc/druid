@@ -281,7 +281,7 @@ var Bot = Class.$extend({
 		// routers which keep track of data bytes passed on the wire).
 		var self = this;
 		setInterval(function () {
-			console.trace("druid: Sending application-level keepalive");
+			console.log("druid: Sending application-level keepalive");
 			self._conn.connection.send(" ");
 		}, 30000);
 	},
