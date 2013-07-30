@@ -136,16 +136,18 @@ var Trigger = Class.$extend({
 			if (this._regexp.global) {
 				var match = null;
 				while ((match = this._regexp.exec(text)) !== null) {
-					for (var i = 1; i < match.length; i++) {
-						matches[matches.length] = match[i];
-					}
+					var m = [];
+					for (var i = 1; i < match.length; i++)
+						m[m.length] = match[i];
+					matches[matches.length] = m;
 				}
 			} else {
 				var match = this._regexp.exec(text);
 				if (match) {
-					for (var i = 1; i < match.length; i++) {
-						matches[matches.length] = match[i];
-					}
+					var m = [];
+					for (var i = 1; i < match.length; i++)
+						m[m.length] = match[i];
+					matches[matches.length] = m;
 				}
 			}
 			return (matches.length > 0) ? matches : null;
@@ -155,7 +157,16 @@ var Trigger = Class.$extend({
 
 	run: function (request) {
 		var matches = this.matches(request.message);
-		return (matches !== null) ? this._callback(request.start(), matches) : false;
+		if (matches === null) {
+			return false;
+		}
+
+		for (var i = 0; i < matches.length; i++) {
+			if (!this._callback(request.start(), matches[i])) {
+				return false;
+			}
+		}
+		return true;
 	},
 });
 exports.Trigger = Trigger;

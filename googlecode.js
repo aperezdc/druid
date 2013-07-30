@@ -19,7 +19,7 @@ var ExpandBugId = Trigger.$extend({
 		} else {
 			prefix = project;
 		}
-		self.$super(new RegExp("\\b" + prefix + "(?:\\s+bug\\s+|[:# ])(\\d+)\\b", "i"), function (req, match) {
+		self.$super(new RegExp("\\b" + prefix + "(?:\\s+bug\\s+|[:# ])(\\d+)\\b", "ig"), function (req, match) {
 			req.reply("https://code.google.com/p/" + project + "/issues/detail?id=" + match[0]).end();
 			return true;
 		});
@@ -36,7 +36,7 @@ var BugSummary = Trigger.$extend({
 			maxAge: 1000 * 60 *3, // ...for a maximum of three minutes
 			length: function (n) { return 1; },
 		});
-		self.$super(/\bhttps?:\/\/code\.google\.com\/p\/([-\w]+)\/issues\/detail\?id=(\d+)\b/, function (req, match) {
+		self.$super(/\bhttps?:\/\/code\.google\.com\/p\/([-\w]+)\/issues\/detail\?id=(\d+)\b/g, function (req, match) {
 			if (match[0] != project) {
 				return false;
 			}

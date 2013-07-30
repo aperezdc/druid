@@ -15,7 +15,7 @@ var ExpandBugId = Trigger.$extend({
 	__init__: function (prefix, baseurl) {
 		var self = this;
 		self.baseurl = baseurl;
-		self.$super(new RegExp("\\b" + prefix + "(?:\\s+bug\\s+|[:# ](\\d+)\\b", "i"), function (req, match) {
+		self.$super(new RegExp("\\b" + prefix + "(?:\\s+bug\\s+)[:# ](\\d+)\\b", "ig"), function (req, match) {
 			req.reply(self.baseurl + "/show_bug.cgi?id=" + match[0]).end();
 			return true;
 		});
@@ -34,7 +34,7 @@ var BugSummary = Trigger.$extend({
 		});
 		self.prefix = prefix;
 		self.baseurl = baseurl;
-		self.$super(/\b(https?:\/\/[\w\.\/:-]+)\/show_bug\.cgi\?id=(\d+)\b/, function (req, match) {
+		self.$super(/\b(https?:\/\/[\w\.\/:-]+)\/show_bug\.cgi\?id=(\d+)\b/g, function (req, match) {
 			if (match[0] != self.baseurl) {
 				return false;
 			}
@@ -74,7 +74,7 @@ var ExpandNaturalLanguageIds = Trigger.$extend({
 		var self = this;
 		self.bugzillas = bugzillas;
 		self.defaultbz = defaultbz;
-		self.$super(/\b(?:(\w+)\s+)?bug\s+#?(\d+)\b/i, function (req, match) {
+		self.$super(/\b(?:(\w+)\s+)?bug\s+#?(\d+)\b/ig, function (req, match) {
 			var bugzilla = self.defaultbz;
 			var bugid = null;
 			if (match.length == 2) {
