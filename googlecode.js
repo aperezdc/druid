@@ -20,8 +20,9 @@ var ExpandBugId = Trigger.$extend({
 			prefix = project;
 		}
 		self.$super(new RegExp("\\b" + prefix + "(?:\\s+bug\\s+|[:# ])(\\d+)\\b", "ig"), function (req, match) {
-			req.reply("https://code.google.com/p/" + project + "/issues/detail?id=" + match[0]).end();
-			return true;
+			var url = "https://code.google.com/p/" + project + "/issues/detail?id=" + match[0];
+			req.reply(url);
+			return url;
 		});
 	},
 });
@@ -43,7 +44,7 @@ var BugSummary = Trigger.$extend({
 
 			var url = "https://code.google.com/p/" + project + "/issues/detail?id=" + match[1];
 			if (self._cache.has(url)) {
-				req.reply(project + ":" + match[1] + " - " + self._cache.get(url)).end();
+				req.reply(project + ":" + match[1] + " - " + self._cache.get(url)).sendReply();
 				return true;
 			}
 
@@ -59,7 +60,7 @@ var BugSummary = Trigger.$extend({
 						summary = "Not found / Invalid bug ID";
 					}
 					self._cache.set(url, summary);
-					req.reply(project + ":" + match[1] + " - " + summary).end();
+					req.reply(project + ":" + match[1] + " - " + summary);
 				} catch (e) {
 					console.log("googlecode: error: " + e);
 				}

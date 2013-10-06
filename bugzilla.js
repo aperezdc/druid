@@ -16,8 +16,9 @@ var ExpandBugId = Trigger.$extend({
 		var self = this;
 		self.baseurl = baseurl;
 		self.$super(new RegExp("\\b" + prefix + "(?:\\s+bug\\s+)[:# ](\\d+)\\b", "ig"), function (req, match) {
-			req.reply(self.baseurl + "/show_bug.cgi?id=" + match[0]).end();
-			return true;
+			var url = self.baseurl + "/show_bug.cgi?id=" + match[0];
+			req.reply(url);
+			return url;
 		});
 	},
 });
@@ -41,11 +42,10 @@ var BugSummary = Trigger.$extend({
 
 			var url = self.baseurl + "/show_bug.cgi?id=" + match[1];
 			if (self._cache.has(url)) {
-				req.reply("#" + match[1] + " - " + self._cache.get(url)).end();
+				req.reply("#" + match[1] + " - " + self._cache.get(url)).sendReply();
 				return true;
 			}
 
-			req.replyLater();
 			request(url, function (error, response, body) {
 				if (error) {
 					console.log("bugzilla: error: " + error);
@@ -57,7 +57,7 @@ var BugSummary = Trigger.$extend({
 						summary = "Not found / Invalid bug ID";
 					}
 					self._cache.set(url, summary);
-					req.reply("#" + match[1] + " - " + summary).end();
+					req.reply("#" + match[1] + " - " + summary).sendReply();
 				} catch (e) {
 					console.log("bugzilla: error: " + e);
 				}
@@ -87,10 +87,10 @@ var ExpandNaturalLanguageIds = Trigger.$extend({
 				bugzilla = self.defaultbz;
 			}
 			if (self.bugzillas[bugzilla]) {
-				var baseurl = self.bugzillas[bugzilla];
-				req.reply(baseurl + "/show_bug.cgi?id=" + bugid).end();
+				var url = self.bugzillas[bugzilla] + "/show_bug.cgi?id=" + bugid;
+				req.reply(url);
+				return url;
 			}
-			return true;
 		});
 	},
 });

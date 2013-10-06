@@ -55,7 +55,7 @@ var Request = Class.$extend({
 			throw new XmppError(stanza);
 		}
 
-		this._ended = false;
+		this._reply = null;
 		this.bot = bot;
 		this.stanza = stanza;
 		this.replyto = null;
@@ -78,37 +78,19 @@ var Request = Class.$extend({
 	},
 
 	reply: function (text) {
-		if (!this._ended) {
+		if (this._reply === null) {
+			this._reply = text;
+		} else {
+			this._reply = this._reply + "\n" + text
+		}
+		return this;
+	},
+
+	sendReply: function () {
+		if (this._reply) {
 			this.bot.send(new xmpp.Element("message", { to: this.replyto,
-				type: (this.room ? "groupchat" : "chat") }).c("body").t(text));
+				type: (this.room ? "groupchat" : "chat") }).c("body").t(this._reply));
 		}
-		return this;
-	},
-
-	start: function () {
-		if (!this._ended) {
-			this.setState(STATE_ACTIVE);
-		}
-		return this;
-	},
-	
-	end: function (text) {
-		if (!this._ended) {
-			this.setState(STATE_INACTIVE);
-			this._ended = true;
-		}
-		return this;
-	},
-
-	replyLater: function () {
-		return this.setState(STATE_COMPOSING);
-	},
-
-	setState: function (state) {
-		if (!this._ended) {
-			this.bot.setState(this.replyto, state, this.room !== null);
-		}
-		return this;
 	},
 
 	isMessage: function () {
@@ -162,11 +144,12 @@ var Trigger = Class.$extend({
 		}
 
 		for (var i = 0; i < matches.length; i++) {
-			if (!this._callback(request.start(), matches[i])) {
+			var result = this._callback(request, matches[i]);
+			if (result === false) {
 				return false;
 			}
 		}
-		return true;
+		return result;
 	},
 });
 exports.Trigger = Trigger;
@@ -320,28 +303,53 @@ var Bot = Class.$extend({
 	_onMessageStanza: function (stanza) {
 		try {
 			var request = new Request(this, stanza);
-			if (request.isMucMessage() && this._rooms[request.room]) {
-				for (var i = 0; i < this._triggers.length; i++) {
-					var trigger = this._triggers[i];
-					if (trigger.snoop) {
-						if (trigger.run(request)) {
-							break;
-						} else {
-							continue;
-						}
-					}
+			if (request.message === null) {
+				return;
+			}
 
-					var match = request.message.match("^\\s*" + this._rooms[request.room] + "[:,]\\s*(.*)$");
-					if (match) {
-						request.message = match[1];
-						if (this._triggers[i].run(request)) {
-							break;
-						}
-					}
+			var direct_message = true;
+
+			// If it is a MUC message, bail out if the origin is not one of the
+			// rooms the bot is suppossed to be in, or if the message is from
+			// the bot itself. Not doing this last check causes infinite loops.
+			if (request.isMucMessage()) {
+				if (this._rooms[request.room] === undefined || request.from == this._rooms[request.room])
+				return;
+
+				// If the message is directly addressed to the bot (e.g. spelling
+				// its nick
+				var match = request.message.match("^\\s*" + this._rooms[request.room] + "[:,]\\s*(.*)$");
+				if (match) {
+					request.message = match[1];
+					direct_message = true;
+				} else {
+					direct_message = false;
 				}
 			}
+			this._handleRequest(request, direct_message);
 		} catch (e) {
 			this._onError(e);
+		}
+	},
+
+	_handleRequest: function (request, direct_message) {
+		for (var i = 0; i < this._triggers.length; i++) {
+			var trigger = this._triggers[i];
+			if (direct_message || trigger.snoop) {
+				var result = trigger.run(request);
+				if (typeof(result) === "string") {
+					request.message = result;
+					result = this._handleRequest(request);
+				}
+
+				if (result === true) {
+					break; // handled
+				} else if (result === false) {
+					continue; // try next handler
+				} else {
+					console.error("druid: _handleRequest returned:", result);
+				}
+			}
 		}
 	},
 
