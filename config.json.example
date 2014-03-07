@@ -1,20 +1,35 @@
 {
-	// User JID under which the bot operates, and password.
-	"jid": "bot@jabber.org",
-	"password": "bot-password",
+	//
+	// Configure the XMPP (Jabber) connection.
+	//
+	"xmpp": {
+		// User JID under which the bot operates, and password.
+		"jid": "bot@jabber.org",
+		"password": "bot-password",
 
-	// MUC rooms to connect to. Room names are the keys, and the
-	// value is the nickname the bot will have in the room.
-	"rooms": {
-		"room1@conf.jabber.org": "bbuggy",
-		"room2@conf.jabber.org": "bugmaster"
+		// MUC rooms to connect to. Room names are the keys, and the
+		// value is the nickname the bot will have in the room.
+		"rooms": {
+			"room1@conf.jabber.org": "bbuggy",
+			"room2@conf.jabber.org": "bugmaster"
+		}
+	},
+
+	// Configure the IRC connection.
+	"irc": {
+		"host"    : "irc.freenode.net",
+		"nick"    : "blabberbug",
+		"channels": ["#channel1", "#channel2"]
 	},
 
 	// Maps short prefixes to base URLs of Bugzilla instances.
 	"bugzilla": {
 		"fdo": "https://bugs.freedesktop.org",
 		"gb" : "https://bugzilla.gnome.org",
-		"wk" : "https://bugs.webkit.org"
+		"wk" : "https://bugs.webkit.org",
+
+		// This entry sets the default Bugzille used.
+		"*"  : "wk"
 	},
 
 	// Maps Google Code projects to prefixes (or just "true" for no prefix)
