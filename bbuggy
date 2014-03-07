@@ -1,32 +1,21 @@
 #! /usr/bin/env node
+/* jshint node:true, esnext:true, unused:true */
+// vim: filetype=javascript
 /*
- * bbuggy - a NodeJS Jabber bugbot.
- * Copyright (C) 2013 Adrian Perez <aperez@igalia.com>
+ * bbuggy - a NodeJS Jabber+IRC bugbot.
+ * Copyright (C) 2013-2014 Adrian Perez <aperez@igalia.com>
  *
  * Distributed under terms of the MIT license.
  */
 
-const config = require("./config.json");
+"use strict";
+
 const druid = require("./druid.js");
+const config = require("./config.json");
 
-// TODO Remove this from here and read this from config.json
-const bzMapping = {
-  "gnome": config.bugzilla.gb,
-  "webkit": config.bugzilla.wk,
-  "wk": config.bugzilla.wk,
-  "fdo": config.bugzilla.fdo,
-  "poppler": config.bugzilla.fdo,
-  "freedesktop": config.bugzilla.fdo,
-};
-
-
-bot = new druid.Bot(config);
-
-if (config.bugzilla)
-  require("./bugzilla").configure(bot, config.bugzilla, bzMapping, "gnome");
-if (config.googlecode)
-  require("./googlecode").configure(bot, config.googlecode);
-
+let bot = new druid.Bot();
+bot.addPlugin("googlecode", config.googlecode);
+bot.addPlugin("bugzilla", config.bugzilla);
+bot.addConnection(new druid.xmpp.XmppConnection(config.xmpp));
+bot.addConnection(new druid.irc.IrcConnection(config.irc));
 bot.run();
-
-// vim: ft=javascript

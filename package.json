@@ -3,11 +3,13 @@
   "version": "0.0.1",
   "description": "NodeJS Jabber bot framework",
   "dependencies": {
-    "node-stringprep": "~0.1.7",
-    "cheerio": "~0.12.0",
-    "node-xmpp": "~0.4.5",
-    "request": "~2.21.0",
-    "lru-cache": "~2.3.0"
+    "node-stringprep": "~0.2.3",
+    "cheerio": "~0.13.1",
+    "node-xmpp": "~0.15.0",
+    "request": "~2.34.0",
+    "lru-cache": "~2.5.0",
+    "irc": "~0.3.6",
+    "fishbone": "~1.0.1"
   },
   "devDependencies": {},
   "scripts": {
